@@ -15,6 +15,7 @@ Libraries: OpenCV(version 4.0), Dronekit, Numpy, Matplotlib, Skimage
 | Flight Controller:   | Holybro Kakute F7 (http://www.holybro.com/product/kakute-f7-v1-5/)  | 
 | Companion Computer:    | Raspberry Pi 4 Compute Module + StereoPi V2 (https://www.stereopi.com/v2)     | 
 | Communication:  | Over WIFI with ESP32-M1-Reach-Out  (https://www.crowdsupply.com/bison-science/esp32-m1-reach-out)    | 
+| GPS: | http://www.mateksys.com/?portfolio=m9n-f4 |
 | ESC:     | Tekko32 F3 45A 4 In 1 Blheli 32 3-6S Brushless ESC      | 
 | Motors:  |  iflight XING 2450KV Brushless Motor x4 (will be upgraded to https://shop.iflight-rc.com/quad-parts-cat20/motors-cat26/xing-motors-cat148/xing-x2806-5-fpv-nextgen-motor-pro1001)     | 
 | Cameras:     | -For landing: https://www.waveshare.com/imx335-5mp-usb-camera-a.htm (auto focus version recommended)      -For object avoidance and mapping: https://www.waveshare.com/imx219-160-camera.htm x2       | 
