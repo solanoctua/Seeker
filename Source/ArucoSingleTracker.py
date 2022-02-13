@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 import cv2, math, time
 import numpy as np
 
@@ -8,7 +7,7 @@ class ArucoSingleTracker():
         self.marker_size = marker_size
         self.camera_matrix = camera_matrix
         self.dist_coeffs = dist_coeffs
-        self.camera_no = camera_no
+        #self.camera_no = camera_no
         self.show_feed = show_feed
 
         # define Aruco dictionary and parameters
@@ -17,7 +16,7 @@ class ArucoSingleTracker():
         self.aruco_params = cv2.aruco.DetectorParameters_create()
         self.aruco_params.errorCorrectionRate = 0.6 # default 0.6
 
-        self.cap = cv2.VideoCapture(self.camera_no)
+        self.cap = cv2.VideoCapture(camera_no)
         #Set the camera size as the one it was calibrated with
         #self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, camera_size[0])
         #self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_size[1])
@@ -76,7 +75,7 @@ class ArucoSingleTracker():
                 
             else:
                 ret = False
-
+            
             while ret:
                 ret , frame = self.cap.read()
                 
@@ -91,7 +90,7 @@ class ArucoSingleTracker():
 
                 cv2.circle(frame,(int(frame_width/2),int(frame_height/2)), 10, (0,255,0), 1,  cv2.LINE_AA)
                 # cv2.aruco.detectMarkers(  image, dictionary[, corners[, ids[, parameters[, rejectedImgPoints[, cameraMatrix[, distCoeff]]]]]] )
-                (corners, ids, rejected) = cv2.aruco.detectMarkers(image=gray, dictionary=self.aruco_dict, parameters=self.aruco_params)
+                (corners, ids, rejected) = cv2.aruco.detectMarkers(image=gray, dictionary=self.aruco_dict, parameters=self.aruco_params, cameraMatrix=self.camera_matrix, distCoeff=self.dist_coeffs)
                 if(len(corners) > 0 ): # Returns True if at least one ArUco marker is detected.
                     ids = ids.flatten() # Return a copy of the ids array collapsed into one dimension.
                     #print("ids: ",ids)
@@ -109,7 +108,7 @@ class ArucoSingleTracker():
                         # Pose estimation for single marker.
                         # rvecs, tvecs, _objPoints  =   cv.aruco.estimatePoseSingleMarkers( corners, markerLength, cameraMatrix, distCoeffs[, rvecs[, tvecs[, _objPoints]]] )
                         # markerLength  the length of the markers' side. The returning translation vectors will be in the same unit. Normally, unit is meters.
-                        rvec, tvec= cv2.aruco.estimatePoseSingleMarkers(corners=corners[marker_index], markerLength=self.marker_size, cameraMatrix=self.camera_matrix, distCoeffs=self.dist_coeffs)
+                        rvec, tvec, marker_points = cv2.aruco.estimatePoseSingleMarkers(corners=corners[marker_index], markerLength=self.marker_size, cameraMatrix=self.camera_matrix, distCoeffs=self.dist_coeffs)
                         #print("rvec: ",rvec)
                         #print("tvec: ",tvec)
                         # The translation vector contains the marker position relative to the camera.
@@ -169,11 +168,19 @@ class ArucoSingleTracker():
                     
                 
 if __name__ == "__main__":
-    print("running") 
-    camera_matrix  = np.array( [ [ 6.0784457614025803e+02          ,            0.         ,   3.2306280294111639e+02],
-                                 [           0.                    , 6.0776688471513398e+02,   2.3031092286690938e+02],
-                                 [           0.                    ,            0.         ,             1.          ]])
-    dist_coeffs  = np.array( [ 2.2848729690411801e-01, -9.5226223066766025e-01, 9.7446890329030999e-04, 8.5096039022205565e-05, 1.3294917618602062e-01 ])                                     
-    tracker = ArucoSingleTracker(marker_id=4, marker_size=0.190, camera_matrix=camera_matrix, dist_coeffs=dist_coeffs)
+    print("running")
+    #for pinhole
+    camera_matrix  = np.array( [ [8.6297319278294219e+02,          0.          , 3.2410970150269952e+02], 
+                                [           0.         ,8.6289007075149686e+02, 2.3151809145852621e+02],
+                                [           0.         ,          0.          ,            1.         ] ])
+    dist_coeffs  = np.array( [ 1.3876171595109568e-01, -5.0495233579131149e-01, -1.4364550355797534e-03, 3.0938437583063767e-03, 1.3034844698951493e+00 ])       
+    #for fisheye
+    camera_matrix2 = np.array([[4.854063946505623335e+02,            0.          , 3.052856318255884958e+02],
+                               [          0.            ,4.854079534951868027e+02, 2.390909613840788666e+02],
+                               [          0.            ,            0.          , 1.                      ]])
+
+    dist_coeffs2 = np.array([-1.347099963195809436e-01, 2.136884941468401855e-02, -7.346353886725681681e-02, 7.520179027764506419e-02])                             
+    tracker = ArucoSingleTracker(marker_id = 4, marker_size = 0.430, camera_matrix = camera_matrix2, dist_coeffs = dist_coeffs2, camera_no = 1)
+    #tracker = ArucoSingleTracker(marker_id = 4, marker_size = 0.190, camera_matrix=camera_matrix, dist_coeffs=dist_coeffs)
     tracker.Seek()
             
