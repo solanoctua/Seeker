@@ -7,4 +7,5 @@
 [![Camera Calibration](https://img.youtube.com/vi/YAxB-z1O-gI/0.jpg)](https://youtu.be/YAxB-z1O-gI)
 [![Camera Calibration Results](https://img.youtube.com/vi/003jSb1dTzg/0.jpg)](https://youtu.be/003jSb1dTzg)
 
-https://github.com/solanoctua/Seeker/blob/main/Stuff/ArucoLock.png
+
+![ArucoMarkerDetection](https://github.com/solanoctua/Seeker/blob/main/Stuff/ArucoLock.png?raw=true)
