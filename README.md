@@ -33,7 +33,7 @@ Frame: My own true X design
 
 FPV components are used for testing, troubleshooting and safety purposes only.
 
-| Quadcopter   | Specifications: | 
+| Quadcopter Specifications  |  | 
 | :---         | :---           | 
 | Size:   | 7 inch    | 
 | Running Firmware:     | https://firmware.ardupilot.org/Copter/latest/KakuteF7/ (will be upgrated to INAV 4.0)    | 
