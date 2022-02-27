@@ -10,7 +10,7 @@ Libraries: OpenCV(version 4.0), Dronekit, Numpy, Matplotlib, Skimage
 
 | Quadcopter Specifications  |  | 
 | :---         | :---           | 
-| Frame:   | 7 inch true X design   | 
+| Frame:   | 7 inch true X configuration   | 
 | Running Firmware:     | https://firmware.ardupilot.org/Copter/latest/KakuteF7/ (will be upgrated to INAV 4.0)    | 
 | Flight Controller:   | Holybro Kakute F7 (http://www.holybro.com/product/kakute-f7-v1-5/)  | 
 | Companion Computer:    | Raspberry Pi 4 Compute Module + StereoPi V2 (https://www.stereopi.com/v2)     | 
