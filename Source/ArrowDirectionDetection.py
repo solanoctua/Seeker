@@ -73,8 +73,11 @@ while ret :
     #white = cv2.bitwise_and(frame, frame, mask = mask_white)
 
     contours, hierarchy = cv2.findContours(mask_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #SIMPLE
-    contours = sorted(contours, key=cv2.contourArea)
+    #contours = max(contours, key = cv2.contourArea)
+    
+    contours = sorted(contours, key = cv2.contourArea)
     contours = contours[-1:] # Take the object with the largest area
+    
     """
     contours, hierarchy = cv2.findContours(hsv_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = sorted(contours, key=lambda x:cv2.contourArea(x), reverse=True)
@@ -106,9 +109,6 @@ while ret :
             ConvexHullPoints = cv2.convexHull(contour)
             #cv2.fillPoly(mask_arrow, ConvexHullPoints, color=(0,0,0))
             cv2.polylines(mask_arrow, [ConvexHullPoints], True, (0,255,255), 2)
-            
-    
-            
             
             set_qualityLevel = cv2.getTrackbarPos("qualityLevel", "CornerTrackbars")
             set_maxCorners = cv2.getTrackbarPos("maxCorners", "CornerTrackbars")
@@ -157,47 +157,47 @@ while ret :
                     
                     
             
-    target_color = cv2.bitwise_and(frame, frame, mask = mask_color)
-    #draw a transparent rectangle to the zone, where our targeted object's center point lies.
-    if(center_contour[0] <= int(frame_width/2 -target_lock_radius) and center_contour[1] <= int(frame_height/2 - target_lock_radius)):
-        #print("ZONE 1")
-        #To draw a rectangle, you need top-left corner and bottom-right corner of rectangle. 
-        cv2.rectangle(blank,(0,0),(int(frame_width/2 -target_lock_radius),int(frame_height/2 - target_lock_radius)),(0,255,0),cv2.FILLED)
-                                    
-    elif(center_contour[0] <= int(frame_width/2 -target_lock_radius) and center_contour[1] >= int(frame_height/2 - target_lock_radius) and center_contour[1] <= int(frame_height/2 + target_lock_radius)):
-        #print("ZONE 2")
-        cv2.rectangle(blank,(0,int(frame_height/2 - target_lock_radius)),(int(frame_width/2 -target_lock_radius),int(frame_height/2 + target_lock_radius)),(0,255,0),cv2.FILLED)
-    elif(center_contour[0] <= int(frame_width/2 -target_lock_radius) and center_contour[1] >= int(frame_height/2 + target_lock_radius)):
-        #print("ZONE 3")
-        cv2.rectangle(blank,(0,int(frame_height/2 + target_lock_radius)),(int(frame_width/2 -target_lock_radius),int(frame_height)),(0,255,0),cv2.FILLED)
-    elif(center_contour[0] >= int(frame_width/2 -target_lock_radius) and center_contour[0] <= int(frame_width/2 +target_lock_radius) and center_contour[1] <= int(frame_height/2 - target_lock_radius)  ):
-        #print("ZONE 4")
-        cv2.rectangle(blank,(int(frame_width/2 -target_lock_radius),0),(int(frame_width/2 +target_lock_radius),int(frame_height/2 - target_lock_radius)),(0,255,0),cv2.FILLED)
-    elif(center_contour[0] >= int(frame_width/2 -target_lock_radius) and center_contour[0] <= int(frame_width/2 +target_lock_radius) and center_contour[1] >= int(frame_height/2 - target_lock_radius) and center_contour[1] <= int(frame_height/2 + target_lock_radius)):
-        #print("ZONE 5")
-        cv2.rectangle(blank,(int(frame_width/2 -target_lock_radius),int(frame_height/2 - target_lock_radius)),(int(frame_width/2 + target_lock_radius),int(frame_height/2 + target_lock_radius)),(0,255,0),cv2.FILLED)
-    elif(center_contour[0] >= int(frame_width/2 -target_lock_radius) and center_contour[0] <= int(frame_width/2 +target_lock_radius) and center_contour[1] >= int(frame_height/2 + target_lock_radius)  ):
-        #print("ZONE 6")
-        cv2.rectangle(blank,(int(frame_width/2 -target_lock_radius),int(frame_height/2 + target_lock_radius)),(int(frame_width/2 +target_lock_radius),int(frame_height)),(0,255,0),cv2.FILLED)
-    elif(center_contour[0] >= int(frame_width/2 +target_lock_radius) and center_contour[1] <= int(frame_height/2 - target_lock_radius)):
-        #print("ZONE 7")
-        cv2.rectangle(blank,(int(frame_width/2 +target_lock_radius),0),(int(frame_width),int(frame_height/2 - target_lock_radius)),(0,255,0),cv2.FILLED)
-    elif(center_contour[0] >= int(frame_width/2 +target_lock_radius) and center_contour[1] >= int(frame_height/2 - target_lock_radius) and center_contour[1] <= int(frame_height/2 + target_lock_radius)):
-        #print("ZONE 8")
-        cv2.rectangle(blank,(int(frame_width/2 +target_lock_radius),int(frame_height/2 - target_lock_radius)),(int(frame_width),int(frame_height/2 + target_lock_radius)),(0,255,0),cv2.FILLED)
-    elif(center_contour[0] >= int(frame_width/2 +target_lock_radius) and center_contour[1] >= int(frame_height/2 + target_lock_radius)):
-        #print("ZONE 9")
-        cv2.rectangle(blank,(int(frame_width/2 +target_lock_radius),int(frame_height/2 + target_lock_radius)),(int(frame_width),int(frame_height)),(0,255,0),cv2.FILLED)
-    else:
-        pass        
-    alpha = 0.4
-    beta = (1.0 - alpha)
-    cv2.addWeighted(blank, alpha, frame, beta, 0.0,frame) # to make rectangle transparent
-    
+            target_color = cv2.bitwise_and(frame, frame, mask = mask_color)
+            #draw a transparent rectangle to the zone, where our targeted object's center point lies.
+            if(center_contour[0] <= int(frame_width/2 -target_lock_radius) and center_contour[1] <= int(frame_height/2 - target_lock_radius)):
+                #print("ZONE 1")
+                #To draw a rectangle, you need top-left corner and bottom-right corner of rectangle. 
+                cv2.rectangle(blank,(0,0),(int(frame_width/2 -target_lock_radius),int(frame_height/2 - target_lock_radius)),(0,255,0),cv2.FILLED)
+                                            
+            elif(center_contour[0] <= int(frame_width/2 -target_lock_radius) and center_contour[1] >= int(frame_height/2 - target_lock_radius) and center_contour[1] <= int(frame_height/2 + target_lock_radius)):
+                #print("ZONE 2")
+                cv2.rectangle(blank,(0,int(frame_height/2 - target_lock_radius)),(int(frame_width/2 -target_lock_radius),int(frame_height/2 + target_lock_radius)),(0,255,0),cv2.FILLED)
+            elif(center_contour[0] <= int(frame_width/2 -target_lock_radius) and center_contour[1] >= int(frame_height/2 + target_lock_radius)):
+                #print("ZONE 3")
+                cv2.rectangle(blank,(0,int(frame_height/2 + target_lock_radius)),(int(frame_width/2 -target_lock_radius),int(frame_height)),(0,255,0),cv2.FILLED)
+            elif(center_contour[0] >= int(frame_width/2 -target_lock_radius) and center_contour[0] <= int(frame_width/2 +target_lock_radius) and center_contour[1] <= int(frame_height/2 - target_lock_radius)  ):
+                #print("ZONE 4")
+                cv2.rectangle(blank,(int(frame_width/2 -target_lock_radius),0),(int(frame_width/2 +target_lock_radius),int(frame_height/2 - target_lock_radius)),(0,255,0),cv2.FILLED)
+            elif(center_contour[0] >= int(frame_width/2 -target_lock_radius) and center_contour[0] <= int(frame_width/2 +target_lock_radius) and center_contour[1] >= int(frame_height/2 - target_lock_radius) and center_contour[1] <= int(frame_height/2 + target_lock_radius)):
+                #print("ZONE 5")
+                cv2.rectangle(blank,(int(frame_width/2 -target_lock_radius),int(frame_height/2 - target_lock_radius)),(int(frame_width/2 + target_lock_radius),int(frame_height/2 + target_lock_radius)),(0,255,0),cv2.FILLED)
+            elif(center_contour[0] >= int(frame_width/2 -target_lock_radius) and center_contour[0] <= int(frame_width/2 +target_lock_radius) and center_contour[1] >= int(frame_height/2 + target_lock_radius)  ):
+                #print("ZONE 6")
+                cv2.rectangle(blank,(int(frame_width/2 -target_lock_radius),int(frame_height/2 + target_lock_radius)),(int(frame_width/2 +target_lock_radius),int(frame_height)),(0,255,0),cv2.FILLED)
+            elif(center_contour[0] >= int(frame_width/2 +target_lock_radius) and center_contour[1] <= int(frame_height/2 - target_lock_radius)):
+                #print("ZONE 7")
+                cv2.rectangle(blank,(int(frame_width/2 +target_lock_radius),0),(int(frame_width),int(frame_height/2 - target_lock_radius)),(0,255,0),cv2.FILLED)
+            elif(center_contour[0] >= int(frame_width/2 +target_lock_radius) and center_contour[1] >= int(frame_height/2 - target_lock_radius) and center_contour[1] <= int(frame_height/2 + target_lock_radius)):
+                #print("ZONE 8")
+                cv2.rectangle(blank,(int(frame_width/2 +target_lock_radius),int(frame_height/2 - target_lock_radius)),(int(frame_width),int(frame_height/2 + target_lock_radius)),(0,255,0),cv2.FILLED)
+            elif(center_contour[0] >= int(frame_width/2 +target_lock_radius) and center_contour[1] >= int(frame_height/2 + target_lock_radius)):
+                #print("ZONE 9")
+                cv2.rectangle(blank,(int(frame_width/2 +target_lock_radius),int(frame_height/2 + target_lock_radius)),(int(frame_width),int(frame_height)),(0,255,0),cv2.FILLED)
+            else:
+                pass        
+            alpha = 0.4
+            beta = (1.0 - alpha)
+            cv2.addWeighted(blank, alpha, frame, beta, 0.0,frame) # to make rectangle transparent
+            cv2.imshow("mask_arrow",mask_arrow)
     
     cv2.imshow("realTimeCamera",frame)    
     cv2.imshow("mask_color",mask_color)
-    cv2.imshow("mask_arrow",mask_arrow)
+    
     #cv2.imshow("Blurred",blurred)
     key=cv2.waitKey(1)
     if key==27:
