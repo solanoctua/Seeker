@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import time
+import sys
 from dronekit import connect, VehicleMode
 
 
@@ -21,6 +22,17 @@ print (" Is Armable?: %s" % vehicle.is_armable)
 print (" System status: %s" % vehicle.system_status.state)
 print (" Mode: %s" % vehicle.mode.name)    # settable
 
+# Get all channel values from RC transmitter
+print "Channel values from RC Tx:", vehicle.channels
+
+# Access channels individually
+print "Read channels individually:"
+print " Ch1: %s" % vehicle.channels['1']
+"""
+# Set Ch2 override to 200 using indexing syntax
+vehicle.channels.overrides['2'] = 200
+# Set Ch3, Ch4 override to 300,400 using dictionary syntax"
+vehicle.channels.overrides = {'3':300, '4':400}
 """
 #Capturing Real Time Video
 cap = cv2.VideoCapture(0)
@@ -29,41 +41,20 @@ cap = cv2.VideoCapture(0)
 #height
 #cap.set(4,432)
 
-#ORB
-orb = cv2.ORB_create()
-
-#for ORB
-
-indexparameters= dict(algorithm = 6,
-                     table_number = 12,#6, # 12
-                     key_size = 20,#12,     # 20
-                     multi_probe_level = 2)#1) #2
-
-searchparameters = dict(checks=30)
-flann = cv2.FlannBasedMatcher(indexparameters, searchparameters)
 if cap.isOpened():
     ret , frame = cap.read()
     #cap.read() returns a bool (True/False). If frame is read correctly, it will be True. So you can check end of the video by checking this return value.
     #ret will store that bool value 
-
 else:
     ret = False
 
 while ret:
-    #cv2.imshow("ORB-TARGET", output_orb)
-
-    ret , frame = cap.read()
-    medianBlur = cv2.medianBlur(frame,5)
-    grayFrame = cv2.cvtColor(medianBlur,cv2.COLOR_BGR2GRAY)
-    #ORB ALGORITHM APPLIED TO REAL TIME CAPTURING
-    keypoints_grayFrame_orb , descriptors_grayFrame_orb = orb.detectAndCompute(grayFrame, None)
-    show_keypoints_grayFrame_orb = cv2.drawKeypoints(grayFrame,keypoints_grayFrame_orb, None)
-    cv2.imshow("Real Time Cap orb", show_keypoints_grayFrame_orb)
+    _, frame = cap.read()
+    cv2.imshow("Real Time", frame)
 
     if cv2.waitKey(1) == 27:
-            break
-
-# When everything done, release the capture
+        break
 cv2.destroyAllWindows()
 cap.release()
-"""
+sys.exit("Quit")
+
