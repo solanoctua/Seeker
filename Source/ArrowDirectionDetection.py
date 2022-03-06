@@ -9,11 +9,7 @@ def distance_between_points(point1, point2):
     return np.sqrt(np.power(point1[0]-point2[0],2) + np.power(point1[1]-point2[1],2))
 def nothing(x):
     pass
-cv2.namedWindow("CornerTrackbars")
-cv2.createTrackbar("qualityLevel", "CornerTrackbars", 1, 49, nothing)
-cv2.createTrackbar("maxCorners", "CornerTrackbars", 7, 20, nothing)
-cv2.createTrackbar("minDistance", "CornerTrackbars", 10, 15, nothing)
-cv2.createTrackbar("blockSize", "CornerTrackbars", 3, 15, nothing)
+
 """
 cv2.namedWindow("ColorTrackbars")
 cv2.createTrackbar("min - H", "ColorTrackbars", 0, 179, nothing)
@@ -60,7 +56,6 @@ while ret :
     cv2.line(frame,(int(frame_width/2),0),(int(frame_width/2),int(frame_height)),(0,255,0),1) # vertical line
     cv2.line(frame,(0,int(frame_height/2)),(frame_width,int(frame_height/2)),(0,255,0),1) # horizontal line
     
-       
     #H,S,V = cv2.split(hsv_frame)
     min_h = cv2.getTrackbarPos("min - H", "ColorTrackbars")
     min_s = cv2.getTrackbarPos("min - S", "ColorTrackbars")
@@ -148,7 +143,6 @@ while ret :
             #print("text: ",pytesseract.image_to_string(mask_color, config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')) 
             #print("text: ",pytesseract.image_to_string(mask_color, config='digits'))
             
-                    
     cv2.imshow("mask_arrow",mask_arrow)
     cv2.imshow("realTimeCamera",frame)    
     cv2.imshow("mask_color",mask_color)
