@@ -36,7 +36,7 @@ else:
     ret = False
 while ret :
     ret,frame = cam.read()
-    #frame = cv2.imread("Seeker/TargetImages/arrow1.png")
+    frame = cv2.imread("Seeker/TargetImages/arrow1.png")
     frame = cv2.resize(frame,(frame_width, frame_height ))
     
     #frame =cv2.flip(frame,-1)
