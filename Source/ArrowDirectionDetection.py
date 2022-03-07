@@ -30,13 +30,15 @@ prev_frame_time = 0
 new_frame_time = 0
 if cam.isOpened():
     ret,frame = cam.read()
+    frame_width, frame_height = (640,640)
+    output = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc('M','J','P','G'), 20, (frame_width, frame_height)) #https://docs.opencv.org/3.4/dd/d9e/classcv_1_1VideoWriter.html
 else: 
     ret = False
 while ret :
     ret,frame = cam.read()
-    frame = cv2.imread("Seeker/TargetImages/arrow1.png")
-    frame_width, frame_height = (640,640)
+    #frame = cv2.imread("Seeker/TargetImages/arrow1.png")
     frame = cv2.resize(frame,(frame_width, frame_height ))
+    
     #frame =cv2.flip(frame,-1)
     center_frame = (frame_width//2,frame_height//2)
     blurred = cv2.GaussianBlur(frame,(3,3),0)
@@ -66,19 +68,16 @@ while ret :
     min_color = np.array([min_h, min_s, min_v])
     max_color = np.array([max_h, max_s, max_v])
     mask_color = cv2.inRange(hsv_frame, min_color, max_color)
-    #white = cv2.bitwise_and(frame, frame, mask = mask_white)
 
-    contours, hierarchy = cv2.findContours(mask_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) #SIMPLE
+    contours, hierarchy = cv2.findContours(mask_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #SIMPLE-NONE
+
     #contours = max(contours, key = cv2.contourArea)
-    
     contours = sorted(contours, key = cv2.contourArea)
     target_contours = contours[-1:] # Take the object with the largest area
-    
     """
     contours, hierarchy = cv2.findContours(hsv_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = sorted(contours, key=lambda x:cv2.contourArea(x), reverse=True)
-    """
-            
+    """    
     for contour in target_contours:
         if cv2.contourArea(contour) >= 500: # If area is big enough, find its center etc.
             contour = cv2.approxPolyDP(contour, 10, closed=True)
@@ -88,26 +87,21 @@ while ret :
                 print("sign")
                 pass
                 
-            cv2.drawContours(frame, contour, -1, (255,150,0), 15, lineType = cv2.FILLED)
+            cv2.drawContours(frame, contour, -1, (255,0,0), 15, lineType = cv2.FILLED)
             # Find pointer(sharp point of the arrow) 
             points = contour.ravel()
             pointer = (int(points[0]), int(points[1]))
-            cv2.circle(frame, pointer, 10, (0,255,255),-1)
+            cv2.circle(frame, pointer, 5, (0,0,255),-1)
             # Find center of the contour
             moment = cv2.moments(contour) # To find the center of the contour, we use cv2.moment
             (x_contour, y_contour) = (moment['m10'] / (moment['m00'] + 1e-5), moment['m01'] / (moment['m00'] + 1e-5)) # calculate center of the contour
             center_contour = (int(x_contour), int(y_contour))
-            cv2.circle(frame, center_contour, 10, (255,150,0),-1)
+            cv2.circle(frame, center_contour, 10, (0,255,0),-1)
             # Find corners
             mask_arrow = np.ones(frame.shape[:2], dtype="uint8") * 255
             #cv2.drawContours(mask_arrow, contour, -1, (0,0,0), 15, lineType = cv2.FILLED)
-            """
-            ConvexHullPoints = cv2.convexHull(contour)
-            cv2.fillPoly(frame, ConvexHullPoints, color=(255,0,255))
-            """
             cv2.polylines(mask_arrow, [contour], True, (0,255,255), 2)#ConvexHullPoints
-            
-            # Drawing lines
+            # Drawing lines for angle calculation (for visual purposes only)
             cv2.line(frame, center_contour, pointer,(255,0,255),1)
             cv2.line(frame, center_frame, center_contour,(0,0,255),1)
             # Find angle of the arrow
@@ -130,6 +124,7 @@ while ret :
 
             cv2.putText(frame, "{}*".format(angle_arrow), (frame_width - 100, 15) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
             cv2.putText(frame, "{}*".format(angle_target-angle_arrow), center_frame , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+            # If arrow inside the locking_circle, then locking_circle becomes green
             if distance_between_points(center_contour, center_frame) < target_lock_radius:
                 cv2.circle(blank, center_frame, target_lock_radius,(0,255,0), cv2.FILLED)
                 alpha = 0.4
@@ -139,10 +134,10 @@ while ret :
             kernel = np.ones((5,5), np.uint8)
             mask_color = cv2.erode(mask_color, kernel, iterations=1)
             mask_color = cv2.dilate(mask_color, kernel, iterations=1)
-            ret,mask_color = cv2.threshold(np.array(mask_color), 125, 255, cv2.THRESH_BINARY_INV)
+            ret, mask_color = cv2.threshold(np.array(mask_color), 125, 255, cv2.THRESH_BINARY_INV)
             #print("text: ",pytesseract.image_to_string(mask_color, config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')) 
             #print("text: ",pytesseract.image_to_string(mask_color, config='digits'))
-            
+    output.write(frame)    
     cv2.imshow("mask_arrow",mask_arrow)
     cv2.imshow("realTimeCamera",frame)    
     cv2.imshow("mask_color",mask_color)
@@ -152,7 +147,9 @@ while ret :
     if key==27:
         break
 cv2.destroyAllWindows()
+output.release()
 cam.release()
+
 
 
 

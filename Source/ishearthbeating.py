@@ -23,11 +23,11 @@ print (" System status: %s" % vehicle.system_status.state)
 print (" Mode: %s" % vehicle.mode.name)    # settable
 
 # Get all channel values from RC transmitter
-print "Channel values from RC Tx:", vehicle.channels
+print ("Channel values from RC Tx:", vehicle.channels)
 
 # Access channels individually
-print "Read channels individually:"
-print " Ch1: %s" % vehicle.channels['1']
+print ("Read channels individually:")
+print (" Ch1: %s" % vehicle.channels['1'])
 """
 # Set Ch2 override to 200 using indexing syntax
 vehicle.channels.overrides['2'] = 200
