@@ -111,7 +111,7 @@ while ret :
             # Angle of the line connecting center of contour to the center of the frame
             atan = math.atan2(center_frame[1]-center_contour[1], center_frame[0]-center_contour[0])
             angle_target = math.degrees(atan)
-            angle_target = int(angle_target - 90)
+            angle_target = int(360- (90-angle_target) ) #-90
             color = (0,0,255)
             if 0 <= np.abs(angle_arrow) and np.abs(angle_arrow) <= 90:
                 cv2.putText(frame, "FORWARD", (frame_width - 100, 35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)

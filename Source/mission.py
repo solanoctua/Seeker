@@ -49,6 +49,7 @@ def arm_and_takeoff(aTargetAltitude):
         time.sleep(1)
 
 def condition_yaw(heading, relative=False):
+    
     if relative:
         is_relative=1 #yaw relative to direction of travel
     else:
@@ -67,10 +68,24 @@ def condition_yaw(heading, relative=False):
     vehicle.send_mavlink(msg)
 
 def send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration=0):
+    """
+    Body Fixed Frame (Attached to the aircraft):
+    The x axis points in forward (defined by geometry and not by movement) direction. (= roll axis)
+    The y axis points to the right (geometrically) (= pitch axis)
+    The z axis points downwards (geometrically) (= yaw axis)
+    
+    NED Coordinate System:
+    velocity_x > 0 => fly North
+    velocity_x < 0 => fly South
+    velocity_y > 0 => fly East
+    velocity_y < 0 => fly West
+    velocity_z < 0 => ascend
+    velocity_z > 0 => descend 
+    """
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0,       # time_boot_ms (not used)
         0, 0,    # target system, target component
-        mavutil.mavlink.MAV_FRAME_BODY_NED, # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
+        mavutil.mavlink.MAV_FRAME_BODY_NED,  # frame Needs to be MAV_FRAME_BODY_NED for forward/back left/right control.
         0b0000111111000111, # type_mask
         0, 0, 0, # x, y, z positions (not used)
         velocity_x, velocity_y, velocity_z, # m/s
@@ -97,34 +112,48 @@ print (" Mode: %s" % vehicle.mode.name)    # settable
 
 # Get all channel values from RC transmitter
 print "Channel values from RC Tx:", vehicle.channels
-
-if(vehicle.channels['?']) == ?:
-    vehicle.airspeed=0.20 # meters
-    landing_altitude = 0.90 # meters
-    angle_descend = 20
-    and_speed = 0.30 # meters
-    vehicle.mode    = VehicleMode("GUIDED")
-    print("Starting the mission..")
-    print("Mode: %s" % vehicle.mode.name)
-    arm_and_takeoff(2) # altitude = 2 meters
-    time.sleep(2)
-    while True :
-        if Arrow:
-            print("forward at 0.5 m/s for 5 sec.")
-            # forward at 0.5 m/s for 5 sec.
-            velocity_x = 0
-            velocity_y = 0.5  
-            velocity_z = 0
-            duration = 5
-            send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
-        if Line:
-
-        if T:
-            vehicle.mode = VehicleMode("LAND")
-            disarm(wait=True, timeout=None)
-            vehicle.close()
-
-
-
-
-else:
+while True
+    if(vehicle.channels['?']) == ?:
+        vehicle.airspeed = 0.20 # meters default target airspeed/groundspeed when moving the vehicle using simple_goto() (or other position-based movement commands)
+        vehicle.airspeed = 0.20
+        search_altitude = 2 # meters
+        vehicle.mode    = VehicleMode("GUIDED")
+        print("Starting the mission..")
+        print("Mode: %s" % vehicle.mode.name)
+        arm_and_takeoff(search_altitude) # altitude = 2 meters
+        time.sleep(2)
+        while True :
+            if Arrow:
+                """
+                FORWARD: Yaw 0 absolute (North)
+                BACKWARD: Yaw 180 absolute (South)
+                LEFT: Yaw 270 absolute (West)
+                RIGHT: Yaw 90 absolute (East)
+                """
+                # Go to the center of the Arrow symbol
+                if Arrow in lockradius:
+                    # Adjust the angle of the frame wrt arrows angle
+                    condition_yaw(angle)
+                    # Read the distance value and go to the specified direction with given distance
+                    velocity_x = 0.2 # in meters
+                    velocity_y = 0  
+                    velocity_z = 0
+                    duration = distance/velocity_x 
+                    print("forward at {} m/s for {} sec.".format(velocity_x, duration))
+                    send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+            if Line:
+                # Adjust the angle of the frame wrt the line connecting center of the frame to the center point of the line
+                condition_yaw(angle)
+                # Go to the center of the line
+                velocity_x = 0.5 # in meters
+                velocity_y = 0  
+                velocity_z = 0
+                
+                send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+            if T:
+                # Go to the center of the T symbol
+                vehicle.mode = VehicleMode("LAND")
+                disarm(wait=True, timeout=None)
+                vehicle.close()
+    else:
+        continue
