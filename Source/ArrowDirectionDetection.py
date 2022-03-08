@@ -65,7 +65,7 @@ else:
     ret = False
 while ret :
     ret,frame = cam.read()
-    frame = cv2.imread("Seeker/TargetImages/arrow6.png")
+    frame = cv2.imread("Seeker/TargetImages/arrow3.png")
     frame = cv2.resize(frame,(frame_width, frame_height ))
     
     #frame =cv2.flip(frame,-1)
@@ -161,10 +161,8 @@ while ret :
             if angle_arrow > 0:
                 if angle_arrow > 90:
                     angle_arrow = 270-(angle_arrow-90)
-
                 else:
                     angle_arrow = 360 - angle_arrow
-            
             else:
                 angle_arrow *= -1
 
@@ -181,16 +179,16 @@ while ret :
                 angle_target += 270
 
             color = (0,0,255)
-            if 0 <= np.abs(angle_arrow) and np.abs(angle_arrow) <= 90:
-                cv2.putText(frame, "FORWARD", (frame_width - 100, 35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
-            if 90 < np.abs(angle_arrow):
+            
+            if angle_arrow > 135 and angle_arrow < 225:
                 cv2.putText(frame, "BACKWARD", (frame_width - 100, 35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
-            if angle_arrow < 0:
+            if angle_arrow >= 225 and angle_arrow <= 315:
                 cv2.putText(frame, "LEFT", (frame_width - 100, 55) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
-            if angle_arrow > 0:
+            if angle_arrow >= 45 and angle_arrow <= 135:
                 cv2.putText(frame, "RIGHT", (frame_width - 100, 55) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
-
-            cv2.putText(frame, "{}*".format(angle_arrow), (frame_width - 100, 15) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+            if  angle_arrow < 45 or angle_arrow > 315:
+                cv2.putText(frame, "FORWARD", (frame_width - 100, 35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+            cv2.putText(frame, "Arrow Direction: {}*".format(angle_arrow), (frame_width - 200, 15) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
             cv2.putText(frame, "{}*".format(angle_target), center_frame , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
             # If arrow inside the locking_circle, then locking_circle becomes green
             if distance_between_points(center_contour, center_frame) < target_lock_radius:
