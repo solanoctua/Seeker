@@ -29,9 +29,9 @@ FPV components are used for testing, troubleshooting and safety purposes only.
 
 ![ArucoMarkerDetection](https://github.com/solanoctua/Seeker/blob/main/Stuff/ArucoLock.png?raw=true)
 <p float="left">
-<img src="https://github.com/solanoctua/Seeker/blob/main/Stuff/ArrowDirection1.png" width="240" height="240">
-<img src="https://github.com/solanoctua/Seeker/blob/main/Stuff/ArrowDirection2.png" width="240" height="240">
-<img src="https://github.com/solanoctua/Seeker/blob/main/Stuff/ArrowDirection3.png" width="240" height="240">
+<img src="https://github.com/solanoctua/Seeker/blob/main/Stuff/ArrowDirection1.png" width="300" height="300">
+<img src="https://github.com/solanoctua/Seeker/blob/main/Stuff/ArrowDirection2.png" width="300" height="300">
+<img src="https://github.com/solanoctua/Seeker/blob/main/Stuff/ArrowDirection3.png" width="300" height="300">
 </p>
 
 ![DepthCalibration](https://github.com/solanoctua/Seeker/blob/main/Stuff/depth_calib_correct.png?raw=true)
