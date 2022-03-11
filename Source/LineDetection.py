@@ -43,8 +43,6 @@ while ret :
     cv2.line(frame,(0,int(frame_height/2 )),(int(frame_width),int(frame_height/2 )),(255,0,0),1)
     
 
-    
-    
     min_h = cv2.getTrackbarPos("min - H", "ColorTrackbars")
     min_s = cv2.getTrackbarPos("min - S", "ColorTrackbars")
     min_v = cv2.getTrackbarPos("min - V", "ColorTrackbars")
