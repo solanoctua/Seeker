@@ -60,12 +60,12 @@ new_frame_time = 0
 if cam.isOpened():
     ret,frame = cam.read()
     frame_width, frame_height = (640,640)
-    output = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc('M','J','P','G'), 20, (frame_width, frame_height)) #https://docs.opencv.org/3.4/dd/d9e/classcv_1_1VideoWriter.html
+    #output = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc('M','J','P','G'), 20, (frame_width, frame_height)) #https://docs.opencv.org/3.4/dd/d9e/classcv_1_1VideoWriter.html
 else: 
     ret = False
 while ret :
     ret,frame = cam.read()
-    frame = cv2.imread("Seeker/TargetImages/arrow3.png")
+    frame = cv2.imread("Seeker/TargetImages/arrow1.png")
     frame = cv2.resize(frame,(frame_width, frame_height ))
     
     #frame =cv2.flip(frame,-1)
@@ -179,7 +179,7 @@ while ret :
                 angle_target += 270
 
             color = (0,0,255)
-            
+            """
             if angle_arrow > 135 and angle_arrow < 225:
                 cv2.putText(frame, "BACKWARD", (frame_width - 100, 35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
             if angle_arrow >= 225 and angle_arrow <= 315:
@@ -187,6 +187,15 @@ while ret :
             if angle_arrow >= 45 and angle_arrow <= 135:
                 cv2.putText(frame, "RIGHT", (frame_width - 100, 55) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
             if  angle_arrow < 45 or angle_arrow > 315:
+                cv2.putText(frame, "FORWARD", (frame_width - 100, 35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+            """
+            if angle_arrow > 90 and angle_arrow < 270:
+                cv2.putText(frame, "BACKWARD", (frame_width - 100, 35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+            if angle_arrow > 180 and angle_arrow < 360:
+                cv2.putText(frame, "LEFT", (frame_width - 100, 55) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+            if angle_arrow >0 and angle_arrow < 180:
+                cv2.putText(frame, "RIGHT", (frame_width - 100, 55) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+            if  angle_arrow < 90 or angle_arrow > 270:
                 cv2.putText(frame, "FORWARD", (frame_width - 100, 35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
             cv2.putText(frame, "Arrow Direction: {}*".format(angle_arrow), (frame_width - 200, 15) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
             cv2.putText(frame, "{}*".format(angle_target), center_frame , cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
@@ -203,6 +212,8 @@ while ret :
             ret, mask_color = cv2.threshold(np.array(mask_color), 125, 255, cv2.THRESH_BINARY_INV)
             #print("text: ",pytesseract.image_to_string(mask_color, config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')) 
             #print("text: ",pytesseract.image_to_string(mask_color, config='digits'))
+            text = pytesseract.image_to_string(mask_color, lang='eng',config='--psm 6')
+            print("text: ",text)
     #output.write(frame)    
     cv2.imshow("mask_arrow", mask_arrow)
     cv2.imshow("realTimeCamera", frame)    

@@ -142,12 +142,18 @@ while True
                     print("forward at {} m/s for {} sec.".format(velocity_x, duration))
                     send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
             if Line:
+                
+
                 # Adjust the angle of the frame wrt the line connecting center of the frame to the center point of the line
                 condition_yaw(angle)
                 # Go to the center of the line
                 velocity_x = 0.5 # in meters
                 velocity_y = 0  
                 velocity_z = 0
+                # Find direction of the line by looking the angle of the line connecting previous(t = 0) and next(t = 1) center points
+                # If center of the line contour is in lock radius, move forward
+
+                # Also search for X sign
                 
                 send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
             if T:
