@@ -4,7 +4,7 @@ import pytesseract
 pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
 
 frame_width, frame_height = (720,720)  #1280,720
-target_lock_radius = 75
+target_lock_radius = 175
 kernel = np.ones((3, 3), 'uint8') # for morphological operations
 # Parameters for black detection in HSV colorspace
 min_h, min_s, min_v = 0,0,0
@@ -82,6 +82,7 @@ def calculateArrowDirection(contour):
             angle_arrow = 360 - angle_arrow
     else:
         angle_arrow *= -1
+
     return angle_arrow
 
 def searchForText(contour, tolerance):
@@ -114,7 +115,7 @@ def searchForText(contour, tolerance):
         max_width += tolerance
     
     # Cropping text area as an input to OCR
-    text_area = frame[ min_width : max_width , min_height : max_height]
+    text_area = mask_color_inv[ min_width : max_width , min_height : max_height]
     # Read the text https://muthu.co/all-tesseract-ocr-options/
     #print("text: ",pytesseract.image_to_string(text)) #, config='digits'
     #text = pytesseract.image_to_string(text_area, lang='eng',config='--psm 6') #--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789
@@ -123,11 +124,11 @@ def searchForText(contour, tolerance):
     except:
         #print("cannot read the text")
         text = ""
-    #cv2.drawContours(frame,[ROI],0,(0,0,255),2)
+    cv2.drawContours(frame,[ROI],0,(0,0,255),2)
     text = text.replace(" ", "")
     #print("text: ",text)
-    #print("len(text[]): ",len(text[:-1]))
-    #cv2.imshow("text", text_area)
+    print("len(text[]): ",len(text[:-1]))
+    cv2.imshow("text", text_area)
     return text
 
 def calculateAngleOfTarget(center_contour):
@@ -152,7 +153,7 @@ def calculateAngleOfTarget(center_contour):
     return angle_target
 
 cam = cv2.VideoCapture(0)
-mission = "H"
+mission = "X"
 prev_frame_time = 0
 new_frame_time = 0
 if cam.isOpened():
@@ -164,7 +165,7 @@ else:
     ret = False
 while ret :
     ret,frame = cam.read()
-    #frame = cv2.imread("Seeker/TargetImages/X2.png")
+    frame = cv2.imread("Seeker/TargetImages/arrow1.png")
     frame = cv2.resize(frame,(frame_width, frame_height ))
     #frame =cv2.flip(frame,-1)
     #Calculate FPS
@@ -181,7 +182,7 @@ while ret :
 
     # Detect colors only in range that we previously specified
     mask_color = cv2.inRange(hsv_frame, min_color, max_color)
-
+    _, mask_color_inv = cv2.threshold(mask_color, 127, 255, cv2.THRESH_BINARY_INV)
     contours, hierarchy = cv2.findContours(mask_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #SIMPLE-NONE
     contours = sorted(contours, key = cv2.contourArea)
     target_contours = contours[-3:] # Take the object with the largest area
@@ -205,7 +206,7 @@ while ret :
             (x_contour, y_contour) = (moment['m10'] / (moment['m00'] + 1e-5), moment['m01'] / (moment['m00'] + 1e-5)) # calculate center of the contour
             center_contour = (int(x_contour), int(y_contour))
 
-            while (mission == "X" and len(contour) == 7) :
+            if (mission == "X" and len(contour) == 7 ) :
                 print("Executing follow arrows mission")
                 # Calculate angle of the target wrt QUAD frame
                 angle_target = calculateAngleOfTarget(center_contour)
@@ -216,12 +217,14 @@ while ret :
                     LEFT: Yaw 270 absolute (West)
                     RIGHT: Yaw 90 absolute (East)
                 """
-                #condition_yaw(angle_target)
-                print("condition_yaw({})".format(angle_target))
-                velocity_x = 0.1 # in meters
-                velocity_y = 0  
-                velocity_z = 0
+                
                 if distance_between_points(center_contour, center_frame) >= target_lock_radius:
+                    print("Arrow is not in lock radius!")
+                    #condition_yaw(angle_target)
+                    print("condition_yaw({})".format(angle_target))
+                    velocity_x = 0.1 # in meters
+                    velocity_y = 0  
+                    velocity_z = 0
                     duration = 1
                     #send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
                     print("send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration))
@@ -261,18 +264,25 @@ while ret :
                     # Find all text as a one contour
                     contours, hierarchy = cv2.findContours(mask_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #SIMPLE-NONE
                     contours = sorted(contours, key = cv2.contourArea)
-                    target_contours = contours[-2:-1] # Take the object with the second largest area
+                    target_contours = contours[-2:-1] # -2:-1Take the object with the second largest area
                     for contour in target_contours:
                         if cv2.contourArea(contour) >= 300: # If area is big enough, find its center etc.
+
+                            # Adjust the angle of the frame wrt arrows angle
+                            #condition_yaw(angle)
+                            print("condition_yaw({})".format(angle_arrow))
+
                             # Find smallest rectangle that encloses the text
                             text = searchForText(contour, tolerance = 10)
-                            if text.isdigit():
+                            try:
+                                text = int(text)
+                            except:
+                                print("cannot convert the text to int")
+                            if text:
                                 print("found",text) 
-
-                                # Adjust the angle of the frame wrt arrows angle
-                                #condition_yaw(angle)
-                                print("condition_yaw({})".format(angle_arrow))
-                                distance = int(text[:3])/100 # in meters
+                                cv2.putText(frame, "arrow {}".format(text), (10, frame_height-35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0,0,255), 2)
+                                
+                                distance = text/100 # in meters
                                 print("Go {} meters in yaw direction {}".format(distance, angle_arrow))
                                 # Read the distance value and go to the specified direction with given distance
                                 velocity_x = 0.2 # in meters
@@ -280,12 +290,13 @@ while ret :
                                 velocity_z = 0
                                 duration = distance/velocity_x 
                                 print("forward at {} m/s for {} sec.".format(velocity_x, duration))
-                                #send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
                                 print("send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration))
+                                #send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+                                
                             else:
                                 print("cannot read distance")
-
-            while (mission == "L" and len(contour) <= 6) :
+                            
+            if (mission == "L" and len(contour) <= 6) :
                 print("Executing follow line mission")
                 angle_target = calculateAngleOfTarget(center_contour)
                 print("condition_yaw({})".format(angle_target))
@@ -307,7 +318,7 @@ while ret :
                     beta = (1.0 - alpha)
                     cv2.addWeighted(blank, alpha, frame, beta, 0.0, frame) # to make rectangle transparent
 
-            while mission == "T":
+            if mission == "T":
                 print("Executing land mission")
                 angle_target = calculateAngleOfTarget(center_contour)
                 print("condition_yaw({})".format(angle_target))
@@ -336,7 +347,7 @@ while ret :
             
 
     cv2.putText(frame,"FPS:{}".format(int(fps)),(15,15),cv2.FONT_HERSHEY_SIMPLEX,.5,(0,0,255),1,cv2.LINE_AA)# Displays fps
-    cv2.putText(frame, "mission: "+ mission, (10, frame_height-35) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0,0,255), 2)
+    cv2.putText(frame, "mission: "+ mission, (10, frame_height-55) , cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0,0,255), 2)
     cv2.circle(frame, (frame_width//2, frame_height//2), target_lock_radius, (0,255,0), 1) # target lock circle
     cv2.line(frame,(int(frame_width/2),0),(int(frame_width/2),int(frame_height)),(0,255,0),1) # vertical line
     cv2.line(frame,(0,int(frame_height/2)),(frame_width,int(frame_height/2)),(0,255,0),1) # horizontal line
