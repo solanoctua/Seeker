@@ -111,7 +111,7 @@ print ("Channel values from RC Tx:", vehicle.channels)
 stage = 0
 while True:
     if(vehicle.channels['6']) >= 1500:
-        print("starting mission...")
+        #print("starting mission...")
         prev_frame_time = 0
         new_frame_time = 0
         if cam.isOpened():
@@ -138,46 +138,46 @@ while True:
             """
             if stage == 0:
                 aTargetAltitude = 1 # in meters
+                mission = "arm_and_takeoff({})".format(aTargetAltitude)
+                print(mission)
                 arm_and_takeoff(aTargetAltitude)
                 vehicle.mode = VehicleMode("LOITER")
-                mission = "arm_and_takeoff({})".format(aTargetAltitude)
                 
-
             if stage == 1:
                 angle = 180
-                condition_yaw(angle)
                 mission = "condition_yaw({})".format(angle)
-    
-            
+                print(mission)
+                condition_yaw(angle)
+                
             if stage == 2:
                 velocity_x = 0.1 # in meters
                 velocity_y = 0  
                 velocity_z = 0
                 duration = 10
-                send_body_ned_velocity(velocity_x, velocity_y, velocity_z, 10)
                 mission = "send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration)
+                print(mission)
+                send_body_ned_velocity(velocity_x, velocity_y, velocity_z, 10)
                 
-
             if stage == 3:
                 angle = 90
-                condition_yaw(angle)
                 mission = "condition_yaw({})".format(angle)
+                print(mission)
+                condition_yaw(angle)
                 
-
             if stage == 4:
                 velocity_x = 0.2 # in meters
                 velocity_y = 0  
                 velocity_z = 0
                 duration = 5
-                send_body_ned_velocity(velocity_x, velocity_y, velocity_z, 10)
                 mission = "send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration)
+                print(mission)
+                send_body_ned_velocity(velocity_x, velocity_y, velocity_z, 10)
                 
-
             if stage == 5:
                 mission = "LAND"
-                
+                print(mission)
                 vehicle.mode = VehicleMode("LAND")
-                disarm(wait=True, timeout=None)
+                #disarm(wait=True, timeout=None)
                 vehicle.close()
                 
             stage += 1
@@ -196,7 +196,10 @@ while True:
         output.release()
         cam.release()
         vehicle.mode = VehicleMode("LAND")
-        disarm(wait=True, timeout=None)
+        #disarm(wait=True, timeout=None)
         vehicle.close()
     else:
+        print("Waiting for command")
         print ("Channel values from RC Tx:", vehicle.channels)
+        print("Command Channel(6): ",vehicle.channels['6'])
+        time.sleep(3)
