@@ -1,12 +1,11 @@
-import cv2, time
+import cv2, time, math
 import numpy as np
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative
 from pymavlink import mavutil # Needed for command message definitions
 
-camera_matrix  = np.array( [ [ 6.0784457614025803e+02          ,            0.         ,   3.2306280294111639e+02],
-                                 [           0.                    , 6.0776688471513398e+02,   2.3031092286690938e+02],
-                                 [           0.                    ,            0.         ,             1.          ]])
-dist_coeffs  = np.array( [ 2.2848729690411801e-01, -9.5226223066766025e-01, 9.7446890329030999e-04, 8.5096039022205565e-05, 1.3294917618602062e-01 ])
+cam = cv2.VideoCapture(2)
+frame_width, frame_height = (1280,720)  #1280,720
+target_lock_radius = 75
 
 def arm_and_takeoff(aTargetAltitude):
     #Arms vehicle and fly to aTargetAltitude.
@@ -23,7 +22,6 @@ def arm_and_takeoff(aTargetAltitude):
     print("Mode: %s" % vehicle.mode.name)
     vehicle.armed   = True
 
-    
     while (not vehicle.mode.name=="GUIDED"  ):
         print("Getting ready to take off ...")
         vehicle.mode = VehicleMode("GUIDED")
@@ -39,9 +37,8 @@ def arm_and_takeoff(aTargetAltitude):
     while True:
         print("Altitude: %s" % vehicle.location.global_relative_frame.alt)
         print("Velocity: %s" % vehicle.velocity)
-        # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
-        #  after Vehicle.simple_takeoff will execute immediately).
-        #Break and return from function just below target altitude.
+        # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command after Vehicle.simple_takeoff will execute immediately).
+        
         if vehicle.location.global_relative_frame.alt>=aTargetAltitude*0.95:
         #if wait_for_alt(alt = 1, epsilon=0.3, rel=True, timeout=None)
             print("Reached target altitude")
@@ -49,11 +46,10 @@ def arm_and_takeoff(aTargetAltitude):
         time.sleep(1)
 
 def condition_yaw(heading, relative=False):
-    
     if relative:
-        is_relative=1 #yaw relative to direction of travel
+        is_relative = 1 #yaw relative to direction of travel
     else:
-        is_relative=0 #yaw is an absolute angle
+        is_relative = 0 #yaw is an absolute angle
     # create the CONDITION_YAW command using command_long_encode()
     msg = vehicle.message_factory.command_long_encode(
         0, 0,    # target system, target component
@@ -91,14 +87,13 @@ def send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration=0):
         velocity_x, velocity_y, velocity_z, # m/s
         0, 0, 0, # x, y, z acceleration
         0, 0)
-    for x in range(0,duration):
+    for x in range(0, duration):
         vehicle.send_mavlink(msg)
         time.sleep(1)
 
-
-time.sleep(20)
-vehicle = connect('/dev/ttyS0', baud=921600)
-
+time.sleep(30)
+#vehicle = connect('/dev/ttyS0', baud=921600)
+vehicle = connect('/dev/ttyAMA0', baud=921600)
 # Get some vehicle attributes (state)
 print (" Get some vehicle attribute values:")
 print (" GPS: %s" % vehicle.gps_0)
@@ -111,55 +106,97 @@ print (" System status: %s" % vehicle.system_status.state)
 print (" Mode: %s" % vehicle.mode.name)    # settable
 
 # Get all channel values from RC transmitter
-print "Channel values from RC Tx:", vehicle.channels
-while True
-    if(vehicle.channels['?']) == ?:
-        vehicle.airspeed = 0.20 # meters default target airspeed/groundspeed when moving the vehicle using simple_goto() (or other position-based movement commands)
-        vehicle.airspeed = 0.20
-        search_altitude = 2 # meters
-        vehicle.mode    = VehicleMode("GUIDED")
-        print("Starting the mission..")
-        print("Mode: %s" % vehicle.mode.name)
-        arm_and_takeoff(search_altitude) # altitude = 2 meters
-        time.sleep(2)
-        while True :
-            if Arrow:
-                """
+print ("Channel values from RC Tx:", vehicle.channels)
+
+stage = 0
+while True:
+    if(vehicle.channels['6']) >= 1500:
+        print("starting mission...")
+        prev_frame_time = 0
+        new_frame_time = 0
+        if cam.isOpened():
+            ret,frame = cam.read()
+            output = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc('M','J','P','G'), 1, (frame_width, frame_height)) #https://docs.opencv.org/3.4/dd/d9e/classcv_1_1VideoWriter.html
+        else: 
+            ret = False
+        while ret :
+            ret,frame = cam.read()
+            frame = cv2.resize(frame,(frame_width, frame_height ))
+            
+            frame =cv2.flip(frame,-1)
+            center_frame = (frame_width//2,frame_height//2)
+            #Calculate FPS
+            new_frame_time = time.time()
+            fps = 1/(new_frame_time-prev_frame_time)
+            prev_frame_time = new_frame_time
+            
+            """
                 FORWARD: Yaw 0 absolute (North)
                 BACKWARD: Yaw 180 absolute (South)
                 LEFT: Yaw 270 absolute (West)
                 RIGHT: Yaw 90 absolute (East)
-                """
-                # Go to the center of the Arrow symbol
-                if Arrow in lockradius:
-                    # Adjust the angle of the frame wrt arrows angle
-                    condition_yaw(angle)
-                    # Read the distance value and go to the specified direction with given distance
-                    velocity_x = 0.2 # in meters
-                    velocity_y = 0  
-                    velocity_z = 0
-                    duration = distance/velocity_x 
-                    print("forward at {} m/s for {} sec.".format(velocity_x, duration))
-                    send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
-            if Line:
+            """
+            if stage == 0:
+                aTargetAltitude = 1 # in meters
+                arm_and_takeoff(aTargetAltitude)
+                vehicle.mode = VehicleMode("LOITER")
+                mission = "arm_and_takeoff({})".format(aTargetAltitude)
                 
 
-                # Adjust the angle of the frame wrt the line connecting center of the frame to the center point of the line
+            if stage == 1:
+                angle = 180
                 condition_yaw(angle)
-                # Go to the center of the line
-                velocity_x = 0.5 # in meters
+                mission = "condition_yaw({})".format(angle)
+    
+            
+            if stage == 2:
+                velocity_x = 0.1 # in meters
                 velocity_y = 0  
                 velocity_z = 0
-                # Find direction of the line by looking the angle of the line connecting previous(t = 0) and next(t = 1) center points
-                # If center of the line contour is in lock radius, move forward
-
-                # Also search for X sign
+                duration = 10
+                send_body_ned_velocity(velocity_x, velocity_y, velocity_z, 10)
+                mission = "send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration)
                 
-                send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
-            if T:
-                # Go to the center of the T symbol
+
+            if stage == 3:
+                angle = 90
+                condition_yaw(angle)
+                mission = "condition_yaw({})".format(angle)
+                
+
+            if stage == 4:
+                velocity_x = 0.2 # in meters
+                velocity_y = 0  
+                velocity_z = 0
+                duration = 5
+                send_body_ned_velocity(velocity_x, velocity_y, velocity_z, 10)
+                mission = "send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration)
+                
+
+            if stage == 5:
+                mission = "LAND"
+                
                 vehicle.mode = VehicleMode("LAND")
                 disarm(wait=True, timeout=None)
                 vehicle.close()
+                
+            stage += 1
+            cv2.circle(frame, (frame_width//2, frame_height//2), target_lock_radius, (0,255,0), 1)
+            cv2.line(frame,(int(frame_width/2),0),(int(frame_width/2),int(frame_height)),(0,255,0),1) # vertical line
+            cv2.line(frame,(0,int(frame_height/2)),(frame_width,int(frame_height/2)),(0,255,0),1) # horizontal line
+            cv2.putText(frame,"FPS:{}".format(int(fps)),(15,15),cv2.FONT_HERSHEY_SIMPLEX,.5,(0,0,255),1,cv2.LINE_AA)#Displays fps
+            cv2.putText(frame, mission, (35,35),cv2.FONT_HERSHEY_SIMPLEX,.5,(255,0,0),1,cv2.LINE_AA)
+            cv2.imshow("realTimeCamera", frame)
+            output.write(frame) 
+
+            key=cv2.waitKey(1)
+            if key==27:
+                break
+        cv2.destroyAllWindows()
+        output.release()
+        cam.release()
+        vehicle.mode = VehicleMode("LAND")
+        disarm(wait=True, timeout=None)
+        vehicle.close()
     else:
-        continue
+        print ("Channel values from RC Tx:", vehicle.channels)

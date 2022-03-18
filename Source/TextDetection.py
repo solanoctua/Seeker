@@ -66,12 +66,12 @@ while ret :
             text_area = frame[ min_width : max_width , min_height : max_height]
             # Read the text https://muthu.co/all-tesseract-ocr-options/
             #print("text: ",pytesseract.image_to_string(text)) #, config='digits'
-            text = pytesseract.image_to_string(text_area, lang='eng',config='--psm 6') #--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789
+            #text = pytesseract.image_to_string(text_area, lang='eng',config='--psm 6') #--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789
             text = pytesseract.image_to_string(text_area, lang='eng',config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')
             cv2.drawContours(frame,[ROI],0,(0,0,255),2)
             text = text.replace(" ", "")
-            print(text[:3])
-            print(len(text[:3]))
+            print(text)
+            print(len(text[:-1]))
             if text[:3].isdigit():
                 print("found",text[:3]) 
    

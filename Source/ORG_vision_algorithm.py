@@ -185,29 +185,51 @@ while ret :
     _, mask_color_inv = cv2.threshold(mask_color, 127, 255, cv2.THRESH_BINARY_INV)
     contours, hierarchy = cv2.findContours(mask_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #SIMPLE-NONE
     contours = sorted(contours, key = cv2.contourArea)
-    target_contours = contours[-3:] # Take the object with the largest area
+    try:
+        target_contours = contours[-3:] # Take the object with the largest area
+    except:
+        target_contours = contours[-1:]
     for contour in target_contours:
         contour = cv2.approxPolyDP(contour, 10, closed=True)
         
-        if cv2.contourArea(contour) >= 500: # If area is big enough, find its center etc.
+        if cv2.contourArea(contour) >= 300: # If area is big enough, find its center etc.
             cv2.drawContours(frame, contour, -1, (255,0,0), 15, lineType = cv2.FILLED)# for visual
             #print("len(contour): ",len(contour))
-            if 7 < len(contour) < 30  :
+            if 7 < len(contour) < 32  :
                 #print("sign")
-                try:
-                    mission = searchForText(contour, tolerance = -70)
-                except:
-                    print("issue for setting mission")
+                # Find center of the contour
+                moment = cv2.moments(contour) # To find the center of the contour, we use cv2.moment
+                (x_contour, y_contour) = (moment['m10'] / (moment['m00'] + 1e-5), moment['m01'] / (moment['m00'] + 1e-5)) # calculate center of the contour
+                center_contour = (int(x_contour), int(y_contour))
 
-                #print("mission: ", mission)
+                # Calculate angle of the target wrt QUAD frame
+                angle_target = calculateAngleOfTarget(center_contour)
+                # Go to the center of the sign symbol
+                if distance_between_points(center_contour, center_frame) >= target_lock_radius:
+                    print("Sign is not in lock radius!")
+                    #condition_yaw(angle_target)
+                    print("condition_yaw({})".format(angle_target))
+                    velocity_x = 0.1 # in meters
+                    velocity_y = 0  
+                    velocity_z = 0
+                    duration = 1
+                    #send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
+                    print("send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration))
+
+                if distance_between_points(center_contour, center_frame) < target_lock_radius:    
+                    try:
+                        mission = searchForText(contour, tolerance = -70)
+                    except:
+                        print("issue for setting mission")
+
+                    #print("mission: ", mission)
                 
-            # Find center of the contour
-            moment = cv2.moments(contour) # To find the center of the contour, we use cv2.moment
-            (x_contour, y_contour) = (moment['m10'] / (moment['m00'] + 1e-5), moment['m01'] / (moment['m00'] + 1e-5)) # calculate center of the contour
-            center_contour = (int(x_contour), int(y_contour))
-
             if (mission == "X" and len(contour) == 7 ) :
                 print("Executing follow arrows mission")
+                # Find center of the contour
+                moment = cv2.moments(contour) # To find the center of the contour, we use cv2.moment
+                (x_contour, y_contour) = (moment['m10'] / (moment['m00'] + 1e-5), moment['m01'] / (moment['m00'] + 1e-5)) # calculate center of the contour
+                center_contour = (int(x_contour), int(y_contour))
                 # Calculate angle of the target wrt QUAD frame
                 angle_target = calculateAngleOfTarget(center_contour)
                 # Go to the center of the sign symbol
@@ -275,7 +297,7 @@ while ret :
                             # Find smallest rectangle that encloses the text
                             text = searchForText(contour, tolerance = 10)
                             try:
-                                text = int(text)
+                                text = int(text[:-1])
                             except:
                                 print("cannot convert the text to int")
                             if text:
@@ -301,11 +323,12 @@ while ret :
                 angle_target = calculateAngleOfTarget(center_contour)
                 print("condition_yaw({})".format(angle_target))
 
-                velocity_x = 0.1 # in meters
-                velocity_y = 0  
-                velocity_z = 0
+                
                 # Go to the center of the T symbol
                 if distance_between_points(center_contour, center_frame) >= target_lock_radius:
+                    velocity_x = 0.1 # in meters
+                    velocity_y = 0  
+                    velocity_z = 0
                     duration = 1
                     #send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration)
                     print("send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration))

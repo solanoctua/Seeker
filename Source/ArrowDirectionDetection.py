@@ -38,6 +38,7 @@ def findPointer(points):
     special_points.insert(0,pointer)
     return special_points
     
+
           
 """
 cv2.namedWindow("ColorTrackbars")
