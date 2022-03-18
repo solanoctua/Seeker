@@ -237,7 +237,7 @@ def send_body_ned_velocity(velocity_x, velocity_y, velocity_z, duration=0):
         vehicle.send_mavlink(msg)
         time.sleep(1)
 
-time.sleep(20)
+time.sleep(30)
 #vehicle = connect('/dev/ttyS0', baud=921600)
 vehicle = connect('/dev/ttyAMA0', baud=921600)
 
@@ -261,7 +261,7 @@ while True:
         vehicle.airspeed = 0.10 # meters default target airspeed/groundspeed when moving the vehicle using simple_goto() (or other position-based movement commands)
         vehicle.airspeed = 0.10
         search_altitude = 1.5 # meters
-        vehicle.mode    = VehicleMode("GUIDED")
+        vehicle.mode = VehicleMode("GUIDED")
         print("Mode: %s" % vehicle.mode.name)
         arm_and_takeoff(search_altitude) # altitude = 1.5 meters
         cam = cv2.VideoCapture(2)
@@ -269,6 +269,8 @@ while True:
 
         if cam.isOpened():
             ret,frame = cam.read()
+            prev_frame_time = 0
+            new_frame_time = 0
             output = cv2.VideoWriter("output.avi", cv2.VideoWriter_fourcc('M','J','P','G'), 20, (frame_width, frame_height)) #https://docs.opencv.org/3.4/dd/d9e/classcv_1_1VideoWriter.html
         else: 
             ret = False
@@ -360,14 +362,16 @@ while True:
                             print("send_body_ned_velocity({}, {}, {}, {})".format(velocity_x, velocity_y, velocity_z, duration))
                             #time.sleep(1)
                     
-                        # If arrow inside the locking_circle, then locking_circle becomes green
+                        
                         if distance_between_points(center_contour, center_frame) < target_lock_radius:
                             # ONLY FOR VISUAL PURPOSES
+                            # If arrow inside the locking_circle, then locking_circle becomes green
+                            """
                             cv2.circle(blank, center_frame, target_lock_radius, (0,255,0), cv2.FILLED)
                             alpha = 0.4
                             beta = (1.0 - alpha)
                             cv2.addWeighted(blank, alpha, frame, beta, 0.0, frame) # to make rectangle transparent
-
+                            """
                             velocity_x = 0 # in meters
                             velocity_y = 0  
                             velocity_z = 0
@@ -392,7 +396,7 @@ while True:
                             # Dilate to connect text characters 
                             mask_color = cv2.dilate(mask_color, kernel, iterations =4) 
                             # Find all text as a one contour
-                            contours, hierarchy = cv2.findContours(mask_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #SIMPLE-NONE
+                            _, contours, hierarchy = cv2.findContours(mask_color, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #SIMPLE-NONE
                             contours = sorted(contours, key = cv2.contourArea)
                             try:
                                 target_contours = contours[-3:] # Take the object with the largest area
@@ -432,7 +436,7 @@ while True:
                                     else:
                                         print("cannot read distance")
                                     
-                    if (mission == "L" and len(contour) <= 6) :
+                    if ((mission == "L" or mission == "H") and len(contour) <= 6) :
                         print("Executing follow line mission")
                         angle_target = calculateAngleOfTarget(center_contour)
                         print("condition_yaw({})".format(angle_target))
@@ -473,11 +477,12 @@ while True:
                     
                         if distance_between_points(center_contour, center_frame) < target_lock_radius:
                             # ONLY FOR VISUAL PURPOSES
+                            """
                             cv2.circle(blank, center_frame, target_lock_radius, (0,255,0), cv2.FILLED)
                             alpha = 0.4
                             beta = (1.0 - alpha)
                             cv2.addWeighted(blank, alpha, frame, beta, 0.0, frame) # to make rectangle transparent
-                            
+                            """
                             vehicle.mode = VehicleMode("LAND")
                             #disarm(wait=True, timeout=None)
                             vehicle.close()
