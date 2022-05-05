@@ -6,7 +6,7 @@ Due to the competition I will be participating in, I cannot provide more informa
 This repository contains prototype software for quadcopter which executes autonomous missions.
 Currently working on softwares: Precise landing on Aruco markers, depth estimation and obstacle avoidance with stereo cameras, stereo visual simultaneous localization and mapping, follow me etc.
 
-Libraries: OpenCV(version 4.0), Dronekit, Numpy, Matplotlib, Skimage
+Libraries: OpenCV(version 4.0), Dronekit, Numpy, Matplotlib(for 2D-3D Plotting), Skimage, Pytesseract(for text reading)
 
 | Quadcopter Specifications  |  | 
 | :---         | :---           | 
