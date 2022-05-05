@@ -40,7 +40,7 @@ class VisualOdometryMono():
         """                                
         self.DistortionCoefficients = np.array( [ 1.3876171595109568e-01, -5.0495233579131149e-01, -1.4364550355797534e-03, 3.0938437583063767e-03, 1.3034844698951493e+00 ])
         
-        self.FeatureDetector = cv2.ORB_create(nfeatures= 3000) # https://docs.opencv.org/4.0.0/db/d95/classcv_1_1ORB.html
+        self.FeatureDetector = cv2.ORB_create(nfeatures= 500) # https://docs.opencv.org/4.0.0/db/d95/classcv_1_1ORB.html
         # Flann parameters for ORB
         indexparameters= dict(algorithm = 6, 
                               table_number = 12,# 6, # 12
@@ -143,16 +143,17 @@ class VisualOdometryMono():
         R1, R2, t = cv2.decomposeEssentialMat(EssentialMatrix)# https://docs.opencv.org/4.0.0/d9/d0c/group__calib3d.html#ga54a2f5b3f8aeaf6c76d4a31dece85d5d
         #print("R1 = {}\nR2 = {}\nt = {}".format(R1, R2, t))
         #print("np.ndarray.flatten(t): ",np.ndarray.flatten(t))
-        T1 = self.calculateTransformationMatrix(R1, t) # 4x4 matrix
-        T2 = self.calculateTransformationMatrix(R2, t)
-        T3 = self.calculateTransformationMatrix(R1, -t)
-        T4 = self.calculateTransformationMatrix(R2, -t)
+        T1 = self.calculateTransformationMatrix(R1, np.ndarray.flatten(t)) # 4x4 matrix
+        T2 = self.calculateTransformationMatrix(R2, np.ndarray.flatten(t))
+        T3 = self.calculateTransformationMatrix(R1, np.ndarray.flatten(-t))
+        T4 = self.calculateTransformationMatrix(R2, np.ndarray.flatten(-t))
 
         T = [T1, T2, T3, T4]
         #print("T = [T1, T2, T3, T4] = \n{} ".format(T))
         # Make cameraMatrix homogeneous
         
         cameraMatrix = np.concatenate((self.CameraMatrix, np.zeros((3,1))), axis= 1) # make last column of the cameraMatrix 0 0 0 so becomes 3x4 matrix
+        print("Homogeneous Camera Matrix= \n",cameraMatrix)
         possiblePoses = [cameraMatrix @ T1, cameraMatrix @ T2, cameraMatrix @ T3, cameraMatrix @ T4]
         """
         print("possiblePoses1 = \n",possiblePoses[0])
@@ -304,9 +305,9 @@ def main():
                 str(currentPose[2,0])+" "+str(currentPose[2,1])+" "+ str(currentPose[2,2])+" "+ str(currentPose[2,3])+"\n")
         ax.scatter(currentPose[0,3],currentPose[2,3],0,marker=".",color=cpick1.to_rgba(z),s = plotSize )
         """
-        Ys = points3D_old[:, 0]
+        Xs = points3D_old[:, 0]
         Zs = points3D_old[:, 1]
-        Xs = points3D_old[:, 2]
+        Ys = points3D_old[:, 2]
         ax.scatter(Xs, Ys, Zs,marker ="1",color=cpick2.to_rgba(z))
         """
         if(vo.visuals == 1):
