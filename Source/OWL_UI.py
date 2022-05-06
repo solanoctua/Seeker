@@ -220,6 +220,7 @@ class Ui_MainWindow(object):
         self.pushButton_LAND = QtWidgets.QPushButton(self.widget3)
         self.pushButton_LAND.setObjectName("pushButton_LAND")
         self.pushButton_LAND.setEnabled(False)
+        self.pushButton_LAND.clicked.connect(lambda: self.changeButton(self.pushButton_LAND))
         self.pushButton_RTH = QtWidgets.QPushButton(self.widget3)
         self.pushButton_RTH.setObjectName("pushButton_RTH")
         self.pushButton_RTH.setEnabled(False)
@@ -404,10 +405,11 @@ class Ui_MainWindow(object):
                 self.printIntoTextbox("CAM2 is not open, picture cannot be taken!")
 
     def changeButton(self, button):
-        print(button.text())
+        #print(button.text())
         if button.text() == "CONNECT":
             self.printIntoTextbox("Connecting to OWL..")
             self.pushButton_ARM.setEnabled(True)
+            self.pushButton_ARM.setText("ARM")
             self.pushButton_LAND.setEnabled(True)
             self.pushButton_RTH.setEnabled(True)
             self.pushButton_POSHOLD.setEnabled(True)
@@ -437,6 +439,10 @@ class Ui_MainWindow(object):
             self.printIntoTextbox("Disarming motors..")
             button.setText("ARM")
             button.setStyleSheet("background-color: green;") 
+            return 1
+        if button.text() == "LAND":
+            self.printIntoTextbox("Landing..")
+            button.setEnabled(False)
             return 1
     def updateFrame(self, qtframe, camera_id):
         """Updates the image_label with a new opencv image"""
