@@ -1,8 +1,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPixmap, QImage, QColor
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread
+from PyQt5.QtGui import QPixmap, QImage, QColor, QFont
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread, QSize, QTimer
 import cv2
-import time, datetime, os
+import time, datetime, os, psutil
 from CAM import *
 class Worker_CAM(QThread):
     frameUpdate = pyqtSignal(QImage, int)
@@ -40,28 +40,6 @@ class Worker_CAM(QThread):
             
             qt_img = self.convert_cv_qt(frame)
 
-        """
-        cam = cv2.VideoCapture(self.camera_id)
-    
-        cam.set(cv2.CAP_PROP_FRAME_WIDTH, 360)
-        cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 620)
-        prev_frame_time = 0
-        new_frame_time = 0
-        while self.ThreadActive:
-            if cam.isOpened():
-                ret, frame = cam.read()
-                frame=cv2.flip(frame,1)
-                if ret:
-                    #Calculate FPS
-                    new_frame_time = time.time()
-                    fps = 1/(new_frame_time-prev_frame_time)
-                    prev_frame_time = new_frame_time
-                    cv2.putText(frame,"FPS:{}".format(int(fps)),(15,15),cv2.FONT_HERSHEY_SIMPLEX,.5,(0,0,255),1,cv2.LINE_AA)# Displays fps
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    qt_img = self.convert_cv_qt(frame)
-                    
-                    #self.CAM0_label.update()
-                    """
             
     def stop(self):
         self.cam.stopFeed()
@@ -70,6 +48,7 @@ class Worker_CAM(QThread):
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+        
         self.isCAM0Running = 0
         self.isCAM1Running = 0
         self.isCAM2Running = 0
@@ -78,6 +57,15 @@ class Ui_MainWindow(object):
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1920, 1000)
+        #MainWindow.setStyleSheet("background-color: none; border-style: solid; border-width: 1px;border-color: black;border-radius: 1px")
+        #MainWindow.setStyleSheet("background-image : url(path.jpeg); background-repeat: no-repeat; background-position: center")
+        self.timer = QTimer()
+        self.timer.setSingleShot(False)
+        self.timer.setInterval(3000) # in milliseconds, so 5000 = 5 seconds
+        self.timer.timeout.connect(self.monitorCPUUsage)
+        self.timer.start() 
+        
+        
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
@@ -141,8 +129,11 @@ class Ui_MainWindow(object):
         self.groupBox_PlaceHolder = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_PlaceHolder.setGeometry(QtCore.QRect(20, 10, 1601, 111))
         self.groupBox_PlaceHolder.setObjectName("groupBox_PlaceHolder")
-
-
+        # CPU Usage
+        self.textBrowser_CPU = QtWidgets.QTextBrowser(self.groupBox_PlaceHolder)
+        self.textBrowser_CPU.setObjectName("textBrowser_CPU")
+        self.textBrowser_CPU.setGeometry(QtCore.QRect(20, 30, 200, 35))
+        self.textBrowser_CPU.setFont(QFont('Arial', 12))
         # Create Widget for STATUS and COMMAND Sections
         self.widget2 = QtWidgets.QWidget(self.centralwidget)
         self.widget2.setGeometry(QtCore.QRect(20, 610, 1881, 311))
@@ -350,6 +341,14 @@ class Ui_MainWindow(object):
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.actionScreenShot.setText(_translate("MainWindow", "ScreenShot"))
         self.PathforSave.setText(_translate("MainWindow", "PathforSave"))
+    def monitorCPUUsage(self): 
+        value = psutil.cpu_percent()
+        if value >= 75 :
+            self.textBrowser_CPU.setTextColor(QColor(255,0,0))
+        else:
+            self.textBrowser_CPU.setTextColor(QColor(0,0,255))
+
+        self.textBrowser_CPU.setText("CPU Usage: %{}".format(value) )
 
     def printIntoTextbox(self, message):
         redColor = QColor(255, 0, 0)
@@ -503,10 +502,12 @@ class Ui_MainWindow(object):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyle('Fusion') #'Windows', 'Fusion'
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
+    ui.monitorCPUUsage()
     ui.printIntoTextbox("Current save path is %s" % ui.savePATH.replace( "/","\\"))
     sys.exit(app.exec_())
     # when exit QUAD SHOULD BEHAVE ?
