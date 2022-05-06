@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QPixmap, QImage, QColor
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread
 import cv2
-import time, os
+import time, datetime, os
 from CAM import *
 class Worker_CAM(QThread):
     frameUpdate = pyqtSignal(QImage, int)
@@ -154,12 +154,18 @@ class Ui_MainWindow(object):
         self.groupBox_Status.setObjectName("groupBox_Status")
         # Create TextBrowser 
         self.textBrowser_Status = QtWidgets.QTextBrowser(self.groupBox_Status)
-        self.textBrowser_Status.setGeometry(QtCore.QRect(20, 20, 631, 261))
+        self.textBrowser_Status.setGeometry(QtCore.QRect(10, 20, 651, 241)) #  QtCore.QRect(20, 20, 631, 261)
         self.textBrowser_Status.setObjectName("textBrowser_Status")
         # Create Save Button to Save Data in the TextBrowser
         self.pushButton_Status_Save = QtWidgets.QPushButton(self.groupBox_Status)
-        self.pushButton_Status_Save.setGeometry(QtCore.QRect(670, 360, 93, 28))
+        self.pushButton_Status_Save.setGeometry(QtCore.QRect(540, 270, 93, 31)) #
         self.pushButton_Status_Save.setObjectName("pushButton_Status_Save")
+        self.pushButton_Status_Save.clicked.connect(self.saveStatus)
+        # Create Clear Button to Save Data in the TextBrowser
+        self.pushButton_Status_Clear = QtWidgets.QPushButton(self.groupBox_Status)
+        self.pushButton_Status_Clear.setObjectName("pushButton_Status_Clear")
+        self.pushButton_Status_Clear.setGeometry(QtCore.QRect(440, 270, 93, 31))
+        self.pushButton_Status_Clear.clicked.connect(self.clearStatusBar)
         # Create GroupBox for GPS Related Data: Coordinates, VehicleSpeed, VehicleAltitude
         self.groupBox = QtWidgets.QGroupBox(self.groupBox_Status)
         self.groupBox.setGeometry(QtCore.QRect(670, 20, 271, 131))
@@ -317,6 +323,7 @@ class Ui_MainWindow(object):
         self.groupBox_PlaceHolder.setTitle(_translate("MainWindow", "PLACEHOLDER"))
         self.groupBox_Status.setTitle(_translate("MainWindow", "STATUS"))
         self.pushButton_Status_Save.setText(_translate("MainWindow", "SAVE"))
+        self.pushButton_Status_Clear.setText(_translate("MainWindow", "CLEAR"))
         self.groupBox.setTitle(_translate("MainWindow", "GPS"))
         self.groupBox_2.setTitle(_translate("MainWindow", "BATTERY"))
         self.groupBox_Commands.setTitle(_translate("MainWindow", "COMMANDS"))
@@ -345,7 +352,7 @@ class Ui_MainWindow(object):
 
         self.textBrowser_Status.setTextColor(redColor)
         self.textBrowser_Status.append(message)
-
+    
     def savePath(self):
         
         dialog = QtWidgets.QFileDialog()
@@ -357,9 +364,16 @@ class Ui_MainWindow(object):
             #print(dialog.selectedFiles()[0]) 
             self.printIntoTextbox("Save path is changed to %s" % dialog.selectedFiles()[0].replace("/", "\\"))
             self.savePATH = dialog.selectedFiles()[0]
-            
+
+    def clearStatusBar(self):
+        self.textBrowser_Status.clear()     
+
+    def saveStatus(self):
+        date = datetime.datetime.now()
+        with open("{}/StatusBar_{}.{}.{}_{}-{}.txt".format(self.savePATH, date.day, date.month, date.year, date.minute, date.second), 'w') as textfile:
+            textfile.write(self.textBrowser_Status.toPlainText())
+        self.printIntoTextbox("Status saved.")
         
-    
     def takePic(self, camera_id):
         if camera_id == 0:
             if self.isCAM0Running:
