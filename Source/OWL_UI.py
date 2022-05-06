@@ -132,11 +132,11 @@ class Ui_MainWindow(object):
         self.groupBox_Connect.setGeometry(QtCore.QRect(1620, 10, 281, 111))
         self.groupBox_Connect.setObjectName("groupBox_Connect")
         # Create Connect Button
-        self.pushButton = QtWidgets.QPushButton(self.groupBox_Connect)
-        self.pushButton.setGeometry(QtCore.QRect(140, 30, 120, 40))
-        self.pushButton.setObjectName("pushButton")
-
-
+        self.pushButton_Connect = QtWidgets.QPushButton(self.groupBox_Connect)
+        self.pushButton_Connect.setGeometry(QtCore.QRect(140, 30, 120, 40))
+        self.pushButton_Connect.setObjectName("pushButton_Connect")
+        self.pushButton_Connect.setStyleSheet("background-color: green;")
+        self.pushButton_Connect.clicked.connect(lambda: self.changeButton(self.pushButton_Connect))
         # Create GroupBox for Something in future
         self.groupBox_PlaceHolder = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_PlaceHolder.setGeometry(QtCore.QRect(20, 10, 1601, 111))
@@ -214,12 +214,18 @@ class Ui_MainWindow(object):
         # Create Basic Command Buttons: ARM, LAND, RTH(Return to Home) and POSHOLD(Position Hold)
         self.pushButton_ARM = QtWidgets.QPushButton(self.widget3)
         self.pushButton_ARM.setObjectName("pushButton_ARM")
+        self.pushButton_ARM.setEnabled(False)
+        self.pushButton_ARM.clicked.connect(lambda: self.changeButton(self.pushButton_ARM))
+
         self.pushButton_LAND = QtWidgets.QPushButton(self.widget3)
         self.pushButton_LAND.setObjectName("pushButton_LAND")
+        self.pushButton_LAND.setEnabled(False)
         self.pushButton_RTH = QtWidgets.QPushButton(self.widget3)
         self.pushButton_RTH.setObjectName("pushButton_RTH")
+        self.pushButton_RTH.setEnabled(False)
         self.pushButton_POSHOLD = QtWidgets.QPushButton(self.widget3)
         self.pushButton_POSHOLD.setObjectName("pushButton_POSHOLD")
+        self.pushButton_POSHOLD.setEnabled(False)
         # Create Vertical Layout for Basic Commands Buttons
         self.verticalLayout_BasicCommands = QtWidgets.QVBoxLayout()
         self.verticalLayout_BasicCommands.setObjectName("verticalLayout_BasicCommands")
@@ -319,7 +325,7 @@ class Ui_MainWindow(object):
         self.pushButton_TakePic_CAM1.setText(_translate("MainWindow", "TAKE PIC"))
         self.pushButton_TakePic_CAM2.setText(_translate("MainWindow", "TAKE PIC"))
         self.groupBox_Connect.setTitle(_translate("MainWindow", "CONNECT"))
-        self.pushButton.setText(_translate("MainWindow", "CONNECT"))
+        self.pushButton_Connect.setText(_translate("MainWindow", "CONNECT"))
         self.groupBox_PlaceHolder.setTitle(_translate("MainWindow", "PLACEHOLDER"))
         self.groupBox_Status.setTitle(_translate("MainWindow", "STATUS"))
         self.pushButton_Status_Save.setText(_translate("MainWindow", "SAVE"))
@@ -373,7 +379,7 @@ class Ui_MainWindow(object):
         with open("{}/StatusBar_{}.{}.{}_{}-{}.txt".format(self.savePATH, date.day, date.month, date.year, date.minute, date.second), 'w') as textfile:
             textfile.write(self.textBrowser_Status.toPlainText())
         self.printIntoTextbox("Status saved.")
-        
+
     def takePic(self, camera_id):
         if camera_id == 0:
             if self.isCAM0Running:
@@ -397,7 +403,41 @@ class Ui_MainWindow(object):
             else:
                 self.printIntoTextbox("CAM2 is not open, picture cannot be taken!")
 
+    def changeButton(self, button):
+        print(button.text())
+        if button.text() == "CONNECT":
+            self.printIntoTextbox("Connecting to OWL..")
+            self.pushButton_ARM.setEnabled(True)
+            self.pushButton_LAND.setEnabled(True)
+            self.pushButton_RTH.setEnabled(True)
+            self.pushButton_POSHOLD.setEnabled(True)
 
+            self.pushButton_ARM.setStyleSheet("background-color: green;")
+            button.setText("DISCONNECT")
+            button.setStyleSheet("background-color: red;")
+            
+            return 1
+        if button.text() == "DISCONNECT":
+            self.printIntoTextbox("Disconnecting..")
+            self.pushButton_ARM.setEnabled(False)
+            self.pushButton_LAND.setEnabled(False)
+            self.pushButton_RTH.setEnabled(False)
+            self.pushButton_POSHOLD.setEnabled(False)
+
+            self.pushButton_ARM.setStyleSheet("background-color: none;")
+            button.setText("CONNECT")
+            button.setStyleSheet("background-color: green;") 
+            return 1
+        if button.text() == "ARM":
+            self.printIntoTextbox("Arming motors..")
+            button.setText("DISARM")
+            button.setStyleSheet("background-color: red;") 
+            return 1
+        if button.text() == "DISARM":
+            self.printIntoTextbox("Disarming motors..")
+            button.setText("ARM")
+            button.setStyleSheet("background-color: green;") 
+            return 1
     def updateFrame(self, qtframe, camera_id):
         """Updates the image_label with a new opencv image"""
         if camera_id == 0:
