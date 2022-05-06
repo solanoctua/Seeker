@@ -42,8 +42,15 @@ class CAM():
 if __name__ == "__main__":
     cam = CAM()
     t = 0
+    prev_frame_time = 0
+    new_frame_time = 0
     while True:
         frame = cam.startFeed()      
+        #Calculate FPS
+        new_frame_time = time.time()
+        fps = 1/(new_frame_time-prev_frame_time)
+        prev_frame_time = new_frame_time
+        cv2.putText(frame,"FPS:{}".format(int(fps)),(15,25),cv2.FONT_HERSHEY_SIMPLEX,.75,(255,0,0),2,cv2.LINE_AA)# Displays fps
         cv2.imshow("Real Time Frame", frame)
         if t == 10:
             cam.saveFrame()
