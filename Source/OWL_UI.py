@@ -4,6 +4,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread, QSize, QTimer
 import cv2
 import time, datetime, os, psutil
 from CAM import *
+from HSVwindow import *
 class Worker_CAM(QThread):
     frameUpdate = pyqtSignal(QImage, int)
     def __init__(self,camera_id ):
@@ -282,6 +283,8 @@ class Ui_MainWindow(object):
         self.menuFile.setObjectName("menuFile")
         self.menuSettings = QtWidgets.QMenu(self.menubar)
         self.menuSettings.setObjectName("menuSettings")
+        self.menuTools = QtWidgets.QMenu(self.menubar)
+        self.menuTools.setObjectName("menuTools")
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setObjectName("menuHelp")
 
@@ -299,10 +302,21 @@ class Ui_MainWindow(object):
         self.menuSettings.addAction(self.PathforSave)
         self.PathforSave.triggered.connect(self.savePath)
         
+        self.HSVcolorspace = QtWidgets.QAction(MainWindow)
+        self.HSVcolorspace.setObjectName("HSVcolorspace")
+        self.menuTools.addAction(self.HSVcolorspace)
+        self.HSVcolorspace.triggered.connect(self.inputHSV)
+
+        self.Resetcolorspace = QtWidgets.QAction(MainWindow)
+        self.Resetcolorspace.setObjectName("Resetcolorspace")
+        self.menuTools.addAction(self.Resetcolorspace)
+        self.Resetcolorspace.triggered.connect(self.resetColorspace)
+
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuSettings.menuAction())
+        self.menubar.addAction(self.menuTools.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
-
+        
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -338,9 +352,13 @@ class Ui_MainWindow(object):
         self.checkBox_CAM2.setText(_translate("MainWindow", "CAM2"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuSettings.setTitle(_translate("MainWindow", "Settings"))
+        self.menuTools.setTitle(_translate("MainWindow", "Tools"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.actionScreenShot.setText(_translate("MainWindow", "ScreenShot"))
         self.PathforSave.setText(_translate("MainWindow", "PathforSave"))
+        self.HSVcolorspace.setText(_translate("MainWindow", "HSVcolorspace"))
+        self.Resetcolorspace.setText(_translate("MainWindow", "Resetcolorspace"))
+
     def monitorCPUUsage(self): 
         value = psutil.cpu_percent()
         if value >= 75 :
@@ -370,7 +388,7 @@ class Ui_MainWindow(object):
             #print(dialog.selectedFiles()[0]) 
             self.printIntoTextbox("Save path is changed to %s" % dialog.selectedFiles()[0].replace("/", "\\"))
             self.savePATH = dialog.selectedFiles()[0]
-
+    
     def clearStatusBar(self):
         self.textBrowser_Status.clear()     
 
@@ -498,7 +516,32 @@ class Ui_MainWindow(object):
                 self.printIntoTextbox("{} is closed.".format(device))
                 self.Worker_CAM2.stop()
 
-    
+    def updateInputHSV(self, window):
+        if self.isCAM0Running :
+            self.Worker_CAM0.cam.colorspace = "HSV"
+            self.Worker_CAM0.cam.HSVinput(window.returnHSVInput())
+
+    def inputHSV(self):
+        self.popWindow = QtWidgets.QMainWindow()
+        self.popWindowUI = Ui_PopWindow()
+        self.popWindowUI.setupUi(self.popWindow)
+        self.popWindow.show()
+        self.timerHSV = QTimer()
+        self.timerHSV.setSingleShot(False)
+        self.timerHSV.setInterval(1000) # in milliseconds, so 5000 = 5 seconds
+        self.timerHSV.timeout.connect(lambda: self.updateInputHSV(self.popWindowUI))
+        self.timerHSV.start() 
+        
+        
+
+        
+    def resetColorspace(self):
+        self.timerHSV.stop()
+        self.Worker_CAM0.cam.colorspace = "BGR"
+
+        
+        
+            
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)

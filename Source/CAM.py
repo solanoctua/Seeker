@@ -16,10 +16,25 @@ class CAM():
         self.frame_width, self.frame_height = (640,640)  #1280,720
         self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.frame_width)
         self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frame_height)
+        self.colorspace = "RGB"
+
+        self.HSVmin_values = np.array([0, 0, 0]) #np.array([min_h, min_s, min_v])
+        self.HSVmax_values = np.array([179, 255, 255]) #np.array([max_h, max_s, max_v])
+
+    def HSVinput(self, HSVminmax):
+        self.HSVmin_values = np.array([HSVminmax[0], HSVminmax[1], HSVminmax[2]])
+        self.HSVmax_values = np.array([HSVminmax[3], HSVminmax[4], HSVminmax[5]])
 
     def startFeed(self):
         if self.cam.isOpened():
             ret,self.frame = self.cam.read()
+            if self.colorspace == "HSV":
+                self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
+                #print(self.HSVmin_values)
+                #print(self.HSVmax_values)
+                mask_HSV = cv2.inRange(self.frame, self.HSVmin_values, self.HSVmax_values) 
+                target = cv2.bitwise_and(self.frame, self.frame, mask = mask_HSV)
+                return target
             if ret:
                 pass
             
@@ -41,11 +56,13 @@ class CAM():
 
 if __name__ == "__main__":
     cam = CAM()
+    cam.colorspace = "HSV"
     t = 0
     prev_frame_time = 0
     new_frame_time = 0
     while True:
         frame = cam.startFeed()      
+        
         #Calculate FPS
         new_frame_time = time.time()
         fps = 1/(new_frame_time-prev_frame_time)
@@ -53,7 +70,8 @@ if __name__ == "__main__":
         cv2.putText(frame,"FPS:{}".format(int(fps)),(15,25),cv2.FONT_HERSHEY_SIMPLEX,.75,(255,0,0),2,cv2.LINE_AA)# Displays fps
         cv2.imshow("Real Time Frame", frame)
         if t == 10:
-            cam.saveFrame()
+            pass
+            #cam.saveFrame()
         t+= 1
         key=cv2.waitKey(1)
         if key==27:
