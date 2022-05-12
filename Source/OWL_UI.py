@@ -5,6 +5,7 @@ import cv2
 import time, datetime, os, psutil
 from CAM import *
 from HSVwindow import *
+
 class Worker_CAM(QThread):
     frameUpdate = pyqtSignal(QImage, int)
     def __init__(self,camera_id ):
@@ -19,7 +20,7 @@ class Worker_CAM(QThread):
         h, w, ch = rgb_image.shape
         
         convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, QImage.Format_RGB888)
-        p = convert_to_Qt_format.scaled(530,530, Qt.KeepAspectRatio)
+        p = convert_to_Qt_format.scaled(608,456, Qt.KeepAspectRatio)
         self.frameUpdate.emit(p,self.camera_id)
 
     def run(self): # when Worker_CAM.start() is called, this function will run
@@ -63,7 +64,8 @@ class Ui_MainWindow(object):
         self.timer = QTimer()
         self.timer.setSingleShot(False)
         self.timer.setInterval(3000) # in milliseconds, so 5000 = 5 seconds
-        self.timer.timeout.connect(self.monitorCPUUsage)
+        self.timer.timeout.connect(self.monitorCpuUsage)
+        self.timer.timeout.connect(self.monitorRamUsage) 
         self.timer.start() 
         
         
@@ -135,6 +137,12 @@ class Ui_MainWindow(object):
         self.textBrowser_CPU.setObjectName("textBrowser_CPU")
         self.textBrowser_CPU.setGeometry(QtCore.QRect(20, 30, 200, 35))
         self.textBrowser_CPU.setFont(QFont('Arial', 12))
+        # RAM Usage
+        self.textBrowser_RAM = QtWidgets.QTextBrowser(self.groupBox_PlaceHolder)
+        self.textBrowser_RAM.setObjectName("textBrowser_RAM")
+        self.textBrowser_RAM.setGeometry(QtCore.QRect(200, 30, 200, 35))
+        self.textBrowser_RAM.setFont(QFont('Arial', 12))
+
         # Create Widget for STATUS and COMMAND Sections
         self.widget2 = QtWidgets.QWidget(self.centralwidget)
         self.widget2.setGeometry(QtCore.QRect(20, 610, 1881, 311))
@@ -359,14 +367,23 @@ class Ui_MainWindow(object):
         self.HSVcolorspace.setText(_translate("MainWindow", "HSVcolorspace"))
         self.Resetcolorspace.setText(_translate("MainWindow", "Resetcolorspace"))
 
-    def monitorCPUUsage(self): 
+    def monitorCpuUsage(self): 
         value = psutil.cpu_percent()
         if value >= 75 :
             self.textBrowser_CPU.setTextColor(QColor(255,0,0))
         else:
             self.textBrowser_CPU.setTextColor(QColor(0,0,255))
 
-        self.textBrowser_CPU.setText("CPU Usage: %{}".format(value) )
+        self.textBrowser_CPU.setText("CPU Usage: %{}".format(value))
+
+    def monitorRamUsage(self):
+        value = psutil.virtual_memory()[2]
+        if value >= 75 :
+            self.textBrowser_RAM.setTextColor(QColor(255,0,0))
+        else:
+            self.textBrowser_RAM.setTextColor(QColor(0,0,255))
+
+        self.textBrowser_RAM.setText("RAM Usage: %{}".format(value))
 
     def printIntoTextbox(self, message):
         redColor = QColor(255, 0, 0)
@@ -461,6 +478,7 @@ class Ui_MainWindow(object):
             self.printIntoTextbox("Landing..")
             button.setEnabled(False)
             return 1
+
     def updateFrame(self, qtframe, camera_id):
         """Updates the image_label with a new opencv image"""
         if camera_id == 0:
@@ -531,17 +549,12 @@ class Ui_MainWindow(object):
         self.timerHSV.setInterval(1000) # in milliseconds, so 5000 = 5 seconds
         self.timerHSV.timeout.connect(lambda: self.updateInputHSV(self.popWindowUI))
         self.timerHSV.start() 
-        
-        
-
-        
+             
     def resetColorspace(self):
-        self.timerHSV.stop()
-        self.Worker_CAM0.cam.colorspace = "BGR"
-
-        
-        
-            
+        if self.isCAM0Running and self.Worker_CAM0.cam.colorspace == "HSV" :
+            self.timerHSV.stop()
+            self.Worker_CAM0.cam.colorspace = "BGR"
+      
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
@@ -550,7 +563,7 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
-    ui.monitorCPUUsage()
+    #ui.monitorCpuUsage()
     ui.printIntoTextbox("Current save path is %s" % ui.savePATH.replace( "/","\\"))
     sys.exit(app.exec_())
     # when exit QUAD SHOULD BEHAVE ?
