@@ -73,6 +73,7 @@ else:
     ret = False
 while ret:
     ret , frame = cap.read()
+    clone = frame.copy()
     cv2.putText(frame,"press 'esc' to quit",(15,15), cv2.FONT_HERSHEY_SIMPLEX, .6,(0,0,255),1,cv2.LINE_AA) #displays some text
     cv2.putText(frame,"press '+' to capture the image",(15,35), cv2.FONT_HERSHEY_SIMPLEX, .6,(255,0,0),1,cv2.LINE_AA) #displays some text
     cv2.putText(frame,"press '-' to discard the image",(15,55), cv2.FONT_HERSHEY_SIMPLEX, .6,(255,0,0),1,cv2.LINE_AA) #displays some text 
@@ -87,7 +88,7 @@ while ret:
     elif key == ord("+"):
         count += 1
         print("Saving image to ",path_of_images)
-        #cv2.imwrite("/{}{}.jpg".format(path_of_images+"/",count),frame)
+        #cv2.imwrite("/{}{}.jpg".format(path_of_images+"/",count),clone)
         cv2.imwrite(path_of_images +"/"+str(count)+".jpg", frame)
         print("Calculating corners..")
         cv2.imwrite("{}{}.jpg".format(path_of_images+"/results/corners_",count), findCorners(frame))
