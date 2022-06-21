@@ -89,7 +89,7 @@ while ret:
         count += 1
         print("Saving image to ",path_of_images)
         #cv2.imwrite("/{}{}.jpg".format(path_of_images+"/",count),clone)
-        cv2.imwrite(path_of_images +"/"+str(count)+".jpg", frame)
+        cv2.imwrite(path_of_images +"/"+str(count)+".jpg", clone)
         print("Calculating corners..")
         cv2.imwrite("{}{}.jpg".format(path_of_images+"/results/corners_",count), findCorners(frame))
 
